@@ -1,94 +1,96 @@
-import copy
-
-#entradas do problema
 N, K = list(map(int, input().split(' ')))
-superiores = list(map(int , input().split()))
 
-#dicionário no formato -> superior: [subordinados]
+superiores = list(map(int , input().split()))
 grafo = {}
+
 for i in range(1,len(superiores)+1):
     grafo[i] = []
     for x,elem in enumerate(superiores):
+
         if elem==i and (x+1)!=i:
             if grafo[elem]:
                 grafo[elem].append(x+1)
             else:
                 grafo[i].append(x+1)
 
-#dicionário no formato -> subordinado: [superior]
-grafo_inv = {}
-grafo_inv[1] = [1]
-for nodo in grafo:
-    for elem in grafo[nodo]:
-        grafo_inv[elem] = [nodo]
+v = []
+v2 = []
 
-#BFS para calcular o nível de cada nodo do grafo
-levels = {}
-def bfs(graph, start):
-    global levels
-    visited = []
+cont = 0
+pos = 0
+pilha = [0]
+maior = [1]
+def dfs(v, grafo, no):
+    global cont
+    global K
+    global pos
+    global n
+    global maior
 
-    queue = [start]
-    visited= [start]
-    levels[start]= 0
+    if no not in v:
 
-    while queue:
-        node = queue.pop(0)
-        visited.append(node)
-        neighbours = graph[node]
+        cont += 1
 
-        for neighbour in neighbours:
-            if neighbour not in visited:
-                queue.append(neighbour)
-                visited.append(neighbour)
-                levels[neighbour]= levels[node]+1
+        v.append(no)
 
-bfs(grafo,1)
+        if len(grafo[no]) == 2:
+            pilha.append(cont)
 
-#DFS para visitar os nodos da folha até a raiz e criar dicionário no formato -> nodo folha: [sequência de nodos até a raiz]
-def dfs(grafo_leafes_dfs, graph, node, visited):
-    if node!=1:
-        visited.append(node)
-        for elem in graph[node]:
-            dfs(grafo_leafes_dfs, grafo_inv, elem, visited)
-    else:
-        visited.append(1)
-        visited.pop(0)
-    return visited
+        if grafo[no] == []:
 
-grafo_leafes_dfs = {}
-for nodo in grafo:
-    if grafo[nodo] == []:
-        grafo_leafes_dfs[nodo] = dfs(grafo_leafes_dfs, grafo_inv, nodo, [])
+            v2.append(maior)
+            cont = pilha[len(pilha) - 1]
+            pilha.remove(pilha[len(pilha) - 1])
+            maior = maior[:cont]
 
-deeper = list(grafo_leafes_dfs.keys())[0]
-for leaf in grafo_leafes_dfs:
-    if len(grafo_leafes_dfs[deeper]) < len(grafo_leafes_dfs[leaf]):
-        deeper = leaf
 
-#loop para visitar os nodos da folha até a raiz e ir prendendo os mafiosos
-stop = len(grafo_leafes_dfs[deeper])
-grafo_result = copy.deepcopy(grafo_leafes_dfs)
-arrested = []
-K-=1
-while K>=0 and len(arrested)!=len(superiores):
-    deeper = list(grafo_result.keys())[0]
-    for leaf in grafo_result:
-        if len(grafo_result[deeper]) < len(grafo_result[leaf]):
-            deeper = leaf
+        for elem in grafo[no]:
+            maior.append(elem)
 
-    arrested.append(deeper)
-    K-=1
-    
-    for elem in grafo_leafes_dfs[deeper]:
-        removed = grafo_result[deeper].pop(0)
-        if removed not in arrested:
-            arrested.append(removed)
 
-        if(stop == len(grafo_result[deeper])+1):
-            for leaf in grafo_result:
-                if grafo_result[leaf][0] == removed:
-                    grafo_result[leaf] = []
+            try:
+                dfs(v, grafo, elem)
 
-#printar resposta
-print(len(arrested))
+            except:
+                continue
+
+
+dfs(v, grafo, 1)
+v3 = []
+v5= []
+soma = 0
+m = len(v2[0])
+n = len(v2)
+pos2 = v2[0]
+for t in range(n):
+    for y in v2:
+
+        if len(y) > m:
+            m = len(y)
+            pos2 = y
+
+    v3.append(pos2)
+    v2.remove(pos2)
+    m = 0
+    pos2 = 0
+for i in v3:
+    if K == 0:
+        break
+
+    for k in i:
+        if k in v:
+            soma += 1
+            v.remove(k)
+    v5.append(soma)
+    soma = 0
+soma = 0
+v6 = sorted(v5, reverse=True)
+
+if K > len(v6):
+    K = len(v6)
+for g in range(K):
+    if K == 0:
+        break
+    soma += v6[g]
+    K -= 1
+print(soma)
